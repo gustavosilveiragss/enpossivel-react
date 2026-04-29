@@ -4,6 +4,7 @@ import Produtos from './paginas/Produtos';
 import Login from './paginas/Login';
 import Cadastro from './paginas/Cadastro';
 import Carrinho from './paginas/Carrinho';
+import CadastroProdutos from './paginas/CadastroProdutos.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada';
 
 export default function Rotas() {
@@ -14,6 +15,7 @@ export default function Rotas() {
 				<Route path="/login" element={<Login />} />
 				<Route path="/cadastro" element={<Cadastro />} />
 				<Route path="/carrinho" element={<Carrinho />} />
+				<Route path="/cadastro-produtos" element={<CadastroProdutos />} />
 				<Route path="*" element={<NaoEncontrada />} />
 			</Route>
 		</Routes>

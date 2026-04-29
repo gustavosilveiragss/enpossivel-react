@@ -1,77 +1,15 @@
 import { useState } from 'react';
 import CardProduto from '../componentes/CardProduto';
-
-const produtos = [
-	{
-		id: 1,
-		titulo: 'Pegada Original do Pé Grande em Gesso',
-		preco: 45000.0,
-		caminhoImagem: '/imagens/pe_grande.jpg',
-	},
-	{
-		id: 2,
-		titulo: 'Foto Autêntica do Monstro de Loch Ness',
-		preco: 128500.0,
-		caminhoImagem: '/imagens/nessie.jpg',
-	},
-	{
-		id: 3,
-		titulo: 'Cachimbo Usado do Saci',
-		preco: 72900.0,
-		caminhoImagem: '/imagens/saci.jpg',
-	},
-	{
-		id: 4,
-		titulo: 'Ferradura da Mula Sem Cabeça',
-		preco: 98000.0,
-		caminhoImagem: '/imagens/mula.webp',
-	},
-	{
-		id: 5,
-		titulo: 'Amostra de Pelo Flamejante do Curupira',
-		preco: 61500.0,
-		caminhoImagem: '/imagens/curupira.webp',
-	},
-
-	{
-		id: 6,
-		titulo: 'Tentáculo de Kraken',
-		preco: 450000.0,
-		caminhoImagem: '/imagens/kraken.jpg',
-	},
-	{
-		id: 7,
-		titulo: 'Pena Fresca de Fênix Renascida',
-		preco: 890000.0,
-		caminhoImagem: '/imagens/fenix.jpg',
-	},
-	{
-		id: 8,
-		titulo: 'Chifre Certificado de Unicórnio',
-		preco: 1250000.0,
-		caminhoImagem: '/imagens/unicornio.jpg',
-	},
-	{
-		id: 9,
-		titulo: 'Garra Preservada do Chupacabra',
-		preco: 38750.0,
-		caminhoImagem: '/imagens/chupacabra.jpg',
-	},
-	{
-		id: 10,
-		titulo: 'Parafuso Original do Disco de McMinnville',
-		preco: 325000.0,
-		caminhoImagem: '/imagens/ovni.jpg',
-	},
-];
+import { lerProdutos } from '../services/mockDataService';
 
 export default function Produtos() {
+	const [produtos, setProdutos] = useState(lerProdutos());
 	const [termo, setTermo] = useState('');
 
-	// filtra por titulo
+	// filtra por titulo e estoque
 	let lista = [];
 	for (let i = 0; i < produtos.length; i++) {
-		if (produtos[i].titulo.toLowerCase().includes(termo.toLowerCase())) {
+		if (produtos[i].estoque > 0 && produtos[i].titulo.toLowerCase().includes(termo.toLowerCase())) {
 			lista.push(produtos[i]);
 		}
 	}

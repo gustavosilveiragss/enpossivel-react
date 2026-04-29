@@ -10,6 +10,7 @@
     "format": "prettier --write src"
   },
   "dependencies": {
+    "lucide-react": "^1.12.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^6.28.0"

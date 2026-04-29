@@ -3,7 +3,7 @@ import Botao from '../componentes/Botao';
 import Dialog from '../componentes/Dialog';
 import LinhaCarrinho from '../componentes/LinhaCarrinho';
 import { formatarMoeda } from '../services/moedaService';
-import { lerCarrinho, salvarCarrinho } from '../services/carrinhoService';
+import { lerCarrinho, salvarCarrinho } from '../services/mockDataService';
 
 export default function Carrinho() {
 	const [itens, setItens] = useState(lerCarrinho());

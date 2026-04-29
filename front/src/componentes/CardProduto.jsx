@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Botao from './Botao';
 import Dialog from './Dialog';
 import { formatarMoeda } from '../services/moedaService';
-import { adicionarAoCarrinho } from '../services/carrinhoService';
+import { adicionarAoCarrinho } from '../services/mockDataService';
 
 export default function CardProduto(props) {
 	const produto = props.produto;

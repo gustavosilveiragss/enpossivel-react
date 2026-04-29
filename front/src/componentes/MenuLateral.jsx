@@ -2,10 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function MenuLateral(props) {
 	// fechado por padrao
-	let posicao = 'translate-x-full';
-	if (props.aberto) {
-		posicao = 'translate-x-0';
-	}
+	let posicao = props.aberto ? 'translate-x-0' : 'translate-x-full';
 
 
 	return (
@@ -18,7 +15,7 @@ export default function MenuLateral(props) {
 					posicao
 				}
 			>
-				<ul>
+				<ul className="flex flex-col h-full">
 					<li className="p-2.5 border-b border-gray-300">
 						<Link to="/" onClick={props.aoFechar} className="text-gray-800 hover:text-perigo">
 							Produtos
@@ -48,6 +45,16 @@ export default function MenuLateral(props) {
 							className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
 						>
 							Registrar Conta
+						</Link>
+					</li>
+
+					<li className="p-2.5 mt-auto">
+						<Link
+							to="/cadastro-produtos"
+							onClick={props.aoFechar}
+							className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
+						>
+							Registrar Produto (POC)
 						</Link>
 					</li>
 				</ul>
