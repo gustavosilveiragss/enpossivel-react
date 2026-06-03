@@ -1,103 +1,169 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import Botao from '../componentes/Botao';
 import Dialog from '../componentes/Dialog';
-import LinhaCarrinho from '../componentes/LinhaCarrinho';
-import { formatarMoeda } from '../services/moedaService';
-import { lerCarrinho, salvarCarrinho } from '../services/mockDataService';
+import { formatarMoeda } from '../servicos/moedaService';
+import { urlImagem } from '../servicos/api';
+import * as apiCarrinho from '../servicos/apiCarrinho';
+import * as apiPedidos from '../servicos/apiPedidos';
+import { usarAviso } from '../contextos/ContextoAviso';
 
 export default function Carrinho() {
-	const [itens, setItens] = useState(lerCarrinho());
+	const [itens, setItens] = useState([]);
 	const [paraRemover, setParaRemover] = useState(null);
-	const [aviso, setAviso] = useState('');
+	const [carregando, setCarregando] = useState(true);
 
-	// valr total do carrinho
-	let total = 0;
-	for (let i = 0; i < itens.length; i++) {
-		total += itens[i].produto.preco * itens[i].qtd;
+	const aviso = usarAviso();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		carregar();
+	}, []);
+
+	function carregar() {
+		setCarregando(true);
+		apiCarrinho
+			.listar()
+			.then((lista) => {
+				setItens(lista);
+			})
+			.catch((e) => {
+				aviso.mostrarErro(e.message);
+			})
+			.finally(() => {
+				setCarregando(false);
+			});
 	}
 
+	let total = 0;
+	for (let i = 0; i < itens.length; i++) {
+		total += Number(itens[i].preco) * itens[i].qtd;
+	}
 
-	function mudarQtd(id, valor) {
+	async function mudarQtd(produto, valor) {
 		if (valor === '') return;
-		let n = parseInt(valor);
+		const n = parseInt(valor);
 
-		// 0 ou menos = pede remocao
 		if (n <= 0) {
-			setParaRemover(id);
+			setParaRemover(produto.id);
 			return;
 		}
 
-		let novos = itens.map(function (i) {
-			if (i.produto.id === id) {
-				return { produto: i.produto, qtd: n };
+		try {
+			if (n > produto.qtd) {
+				for (let k = 0; k < n - produto.qtd; k++) {
+					await apiCarrinho.adicionar(produto.id);
+				}
+			} else if (n < produto.qtd) {
+				for (let k = 0; k < produto.qtd - n; k++) {
+					await apiCarrinho.remover(produto.id);
+				}
 			}
-			return i;
-		});
-		setItens(novos);
-		salvarCarrinho(novos);
+			carregar();
+		} catch (e) {
+			aviso.mostrarErro(e.message);
+			carregar();
+		}
 	}
 
-	function confirmar() {
-		let novos = itens.filter(function (i) {
-			return i.produto.id !== paraRemover;
-		});
-		setItens(novos);
-		salvarCarrinho(novos);
+	async function confirmarRemocao() {
+		const id = paraRemover;
 		setParaRemover(null);
-		setAviso('Removido do caldeirao');
+
+		// busca qtd atual pra remover todas as linhas desse produto
+		let qtd = 0;
+		for (let i = 0; i < itens.length; i++) {
+			if (itens[i].id === id) {
+				qtd = itens[i].qtd;
+				break;
+			}
+		}
+
+		try {
+			for (let k = 0; k < qtd; k++) {
+				await apiCarrinho.remover(id);
+			}
+			aviso.mostrarSucesso('Removido do caldeirao');
+			carregar();
+		} catch (e) {
+			aviso.mostrarErro(e.message);
+			carregar();
+		}
 	}
 
+	async function fazerPedido() {
+		try {
+			await apiPedidos.criar(total);
+			navigate('/checkout');
+		} catch (e) {
+			aviso.mostrarErro(e.message);
+		}
+	}
 
-	const notificacao = (
-		<Dialog
-			tipo="notificacao"
-			aberto={aviso !== ''}
-			mensagem={aviso}
-			aoFechar={() => setAviso('')}
-		/>
-	);
+	if (carregando) {
+		return (
+			<div className="w-full flex justify-center pt-10">
+				<p className="text-gray-700">Carregando...</p>
+			</div>
+		);
+	}
 
 	if (itens.length === 0) {
 		return (
 			<div className="w-full flex justify-center pt-10">
 				<p className="text-gray-700">Caldeirão vazio</p>
-				{notificacao}
 			</div>
 		);
 	}
 
 	return (
-		<div className="w-full flex justify-center">
-			<div className="flex flex-col items-center pt-5">
-				<table className="border border-gray-300 rounded-2xl">
-					<thead>
-						<tr>
-							<th className="px-4 py-2">Produto</th>
-							<th className="px-4 py-2">Preço</th>
-							<th className="px-4 py-2">Qtd</th>
-							<th className="px-4 py-2">Subtotal</th>
-							<th className="px-4 py-2"></th>
-						</tr>
-					</thead>
-					<tbody>
-						{itens.map(function (i) {
-							return (
-								<LinhaCarrinho
-									key={i.produto.id}
-									item={i}
-									aoMudarQtd={mudarQtd}
-									aoRemover={setParaRemover}
+		<div className="w-full flex justify-center px-4 sm:px-5">
+			<div className="flex flex-col items-center pt-5 w-full max-w-5xl">
+				<div className="w-full flex flex-col gap-3">
+					{itens.map((it) => {
+						const subtotal = Number(it.preco) * it.qtd;
+						return (
+							<div
+								key={it.id}
+								className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border border-gray-300 rounded-2xl bg-white"
+							>
+								<img
+									src={urlImagem(it.caminho_imagem)}
+									alt={it.titulo}
+									className="w-20 h-20 object-contain rounded-lg mx-auto sm:mx-0"
 								/>
-							);
-						})}
-					</tbody>
-				</table>
 
-				<div className="p-2.5 my-5 border border-gray-300 rounded-2xl text-xl font-bold">
+								<div className="flex-1 text-center sm:text-left">
+									<div className="font-bold">{it.titulo}</div>
+									<div className="text-sm text-gray-600">{formatarMoeda(it.preco)}</div>
+								</div>
+
+								<div className="flex items-center justify-between sm:justify-end gap-3">
+									<input
+										type="number"
+										min="1"
+										value={it.qtd}
+										onChange={(e) => mudarQtd(it, e.target.value)}
+										className="w-20 text-center border border-gray-300 rounded px-2 py-1"
+									/>
+									<div className="font-bold w-28 text-right">{formatarMoeda(subtotal)}</div>
+									<Botao variante="perigo" aoClicar={() => setParaRemover(it.id)}>
+										<Trash2 className="w-5 h-5" />
+									</Botao>
+								</div>
+							</div>
+						);
+					})}
+				</div>
+
+				<div className="p-2.5 my-5 border border-gray-300 rounded-2xl text-xl font-bold text-center">
 					Total: {formatarMoeda(total)}
 				</div>
 
-				<Botao variante="verde">Fazer pedido</Botao>
+				<Botao variante="verde" aoClicar={fazerPedido}>
+					Fazer pedido
+				</Botao>
 			</div>
 
 			<Dialog
@@ -105,11 +171,9 @@ export default function Carrinho() {
 				aberto={paraRemover !== null}
 				titulo="Remover item"
 				mensagem="Quer mesmo remover esse item do caldeirao?"
-				aoConfirmar={confirmar}
+				aoConfirmar={confirmarRemocao}
 				aoCancelar={() => setParaRemover(null)}
 			/>
-
-			{notificacao}
 		</div>
 	);
 }

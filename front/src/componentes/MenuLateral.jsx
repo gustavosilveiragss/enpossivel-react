@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom';
+import { usarUsuario } from '../contextos/ContextoUsuario';
 
 export default function MenuLateral(props) {
+	const usuario = usarUsuario();
+
 	// fechado por padrao
 	let posicao = props.aberto ? 'translate-x-0' : 'translate-x-full';
 
+	function clicarSair() {
+		props.aoFechar();
+		props.aoSair();
+	}
 
 	return (
 		<>
@@ -22,41 +29,62 @@ export default function MenuLateral(props) {
 						</Link>
 					</li>
 
-					<li className="p-2.5 border-b border-gray-300">
-						<Link to="/carrinho" onClick={props.aoFechar} className="text-gray-800 hover:text-perigo">
-							Caldeirão
-						</Link>
-					</li>
+					{usuario.logado && (
+						<li className="p-2.5 border-b border-gray-300">
+							<Link
+								to="/carrinho"
+								onClick={props.aoFechar}
+								className="text-gray-800 hover:text-perigo"
+							>
+								Caldeirão
+							</Link>
+						</li>
+					)}
 
-					<li className="p-2.5">
-						<Link
-							to="/login"
-							onClick={props.aoFechar}
-							className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
-						>
-							Autenticar Conta
-						</Link>
-					</li>
+					{usuario.souAdmin && (
+						<li className="p-2.5 mt-auto">
+							<Link
+								to="/cadastro-produtos"
+								onClick={props.aoFechar}
+								className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
+							>
+								Registrar Produto
+							</Link>
+						</li>
+					)}
 
-					<li className="p-2.5">
-						<Link
-							to="/cadastro"
-							onClick={props.aoFechar}
-							className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
-						>
-							Registrar Conta
-						</Link>
-					</li>
+					{usuario.logado ? (
+						<li className="p-2.5">
+							<button
+								onClick={clicarSair}
+								className="block w-full text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
+							>
+								Sair
+							</button>
+						</li>
+					) : (
+						<>
+							<li className="p-2.5">
+								<Link
+									to="/login"
+									onClick={props.aoFechar}
+									className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
+								>
+									Autenticar Conta
+								</Link>
+							</li>
 
-					<li className="p-2.5 mt-auto">
-						<Link
-							to="/cadastro-produtos"
-							onClick={props.aoFechar}
-							className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
-						>
-							Registrar Produto (POC)
-						</Link>
-					</li>
+							<li className="p-2.5">
+								<Link
+									to="/cadastro"
+									onClick={props.aoFechar}
+									className="block text-center bg-vermelho text-white px-4 py-2 rounded hover:bg-perigo"
+								>
+									Registrar Conta
+								</Link>
+							</li>
+						</>
+					)}
 				</ul>
 			</aside>
 		</>

@@ -1,0 +1,10 @@
+{
+	"name": "enpossivel-react",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "node dev.js",
+		"migrar": "cd back && npm run migrar",
+		"instalar": "cd back && npm install && cd ../front && npm install"
+	}
+}

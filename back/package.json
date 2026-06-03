@@ -1,0 +1,24 @@
+{
+	"name": "enpossivel-back",
+	"version": "0.0.1",
+	"type": "commonjs",
+	"scripts": {
+		"start": "npm run migrar && node --env-file=.env servidor.js",
+		"dev": "npm run migrar && node --env-file=.env --watch servidor.js",
+		"migrar": "dotenv -e .env -- pg-flyway migrate -l migrations",
+		"format": "prettier --write ."
+	},
+	"dependencies": {
+		"@fastify/cookie": "^11.0.1",
+		"@fastify/cors": "^10.0.1",
+		"@fastify/jwt": "^9.0.1",
+		"bcryptjs": "^2.4.3",
+		"fastify": "^5.1.0",
+		"pg": "^8.13.1",
+		"pg-flyway": "^1.3.2"
+	},
+	"devDependencies": {
+		"dotenv-cli": "^7.4.4",
+		"prettier": "^3.3.0"
+	}
+}
