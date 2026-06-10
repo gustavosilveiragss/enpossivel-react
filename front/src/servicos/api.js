@@ -55,7 +55,30 @@ function del(rota) {
 
 function urlImagem(caminho) {
 	if (!caminho) return '';
+	if (caminho.startsWith('/uploads/')) return baseUrl + caminho;
 	return caminho;
 }
 
-export { get, post, put, del, urlImagem };
+async function enviarImagem(idProduto, arquivo) {
+	const form = new FormData();
+	form.append('imagem', arquivo);
+
+	let resp;
+	try {
+		resp = await fetch(baseUrl + '/produtos/' + idProduto + '/imagem', {
+			method: 'POST',
+			credentials: 'include',
+			body: form,
+		});
+	} catch (e) {
+		throw new Error('Sem conexao com o servidor');
+	}
+
+	if (!resp.ok) {
+		const dados = await resp.json().catch(() => null);
+		throw new Error((dados && dados.erro) || 'Erro ao enviar imagem');
+	}
+	return resp.json();
+}
+
+export { get, post, put, del, urlImagem, enviarImagem };

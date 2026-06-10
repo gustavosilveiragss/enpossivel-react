@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { consulta } = require('../banco');
 
 // 401 = nao autenticado, 403 = autenticado mas sem permissao de admin
@@ -83,9 +85,35 @@ async function deleteProduto(req, resp) {
 	return resp.code(204).send();
 }
 
+async function postImagem(req, resp) {
+	const id = parseInt(req.params.id);
+	if (isNaN(id)) return resp.code(400).send({ erro: 'id invalido' });
+
+	const arquivo = await req.file();
+	if (!arquivo) return resp.code(400).send({ erro: 'arquivo obrigatorio' });
+
+	// aceita so imagem
+	if (!arquivo.mimetype.startsWith('image/')) {
+		return resp.code(400).send({ erro: 'arquivo nao e imagem' });
+	}
+
+	const ext = path.extname(arquivo.filename) || '.jpg';
+	const nome = Date.now() + ext;
+	const destino = path.join(__dirname, '..', 'uploads', nome);
+
+	const buffer = await arquivo.toBuffer();
+	fs.writeFileSync(destino, buffer);
+
+	const caminho = '/uploads/' + nome;
+	await consulta('update produto set caminho_imagem = $1 where id = $2', [caminho, id]);
+
+	return { caminho };
+}
+
 module.exports = function (app) {
 	app.get('/produtos', getProdutos);
 	app.post('/produtos', { preHandler: exigirAdmin }, postProdutos);
 	app.put('/produtos/:id', { preHandler: exigirAdmin }, putProduto);
 	app.delete('/produtos/:id', { preHandler: exigirAdmin }, deleteProduto);
+	app.post('/produtos/:id/imagem', { preHandler: exigirAdmin }, postImagem);
 };

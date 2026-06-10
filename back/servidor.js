@@ -1,4 +1,5 @@
 const Fastify = require('fastify');
+const path = require('path');
 
 const rotaContas = require('./rotas/contas');
 const rotaProdutos = require('./rotas/produtos');
@@ -17,6 +18,12 @@ app.register(require('@fastify/cors'), {
 app.register(require('@fastify/jwt'), {
 	secret: process.env.JWT_SEGREDO,
 	cookie: { cookieName: 'token', signed: false },
+});
+
+app.register(require('@fastify/multipart'), { limits: { fileSize: 5 * 1024 * 1024 } });
+app.register(require('@fastify/static'), {
+	root: path.join(__dirname, 'uploads'),
+	prefix: '/uploads/',
 });
 
 app.register(rotaContas);

@@ -4,7 +4,7 @@ import Campo from '../componentes/Campo';
 import Botao from '../componentes/Botao';
 import Dialog from '../componentes/Dialog';
 import { formatarMoeda } from '../servicos/moedaService';
-import { urlImagem } from '../servicos/api';
+import { urlImagem, enviarImagem } from '../servicos/api';
 import { usarAviso } from '../contextos/ContextoAviso';
 import * as apiProdutos from '../servicos/apiProdutos';
 
@@ -26,6 +26,10 @@ export default function CadastroProdutos() {
 	const [errosEdit, setErrosEdit] = useState({});
 
 	const [paraRemover, setParaRemover] = useState(null);
+	const [arquivoNovo, setArquivoNovo] = useState(null);
+	const [arquivoEdit, setArquivoEdit] = useState(null);
+	const [chaveNovo, setChaveNovo] = useState(0);
+	const [chaveEdit, setChaveEdit] = useState(0);
 
 	const aviso = usarAviso();
 
@@ -63,12 +67,17 @@ export default function CadastroProdutos() {
 
 		setSalvandoNovo(true);
 		try {
-			await apiProdutos.criar({
+			const produto = await apiProdutos.criar({
 				titulo: formNovo.titulo,
 				preco: parseFloat(formNovo.preco),
 				estoque: parseInt(formNovo.estoque),
 			});
+			if (arquivoNovo) {
+				await enviarImagem(produto.id, arquivoNovo);
+			}
 			setFormNovo(formVazio);
+			setArquivoNovo(null);
+			setChaveNovo(function (k) { return k + 1; });
 			setErrosNovo({});
 			aviso.mostrarSucesso('Produto criado');
 			carregar();
@@ -93,6 +102,8 @@ export default function CadastroProdutos() {
 		setEditandoId(null);
 		setFormEdit(formVazio);
 		setErrosEdit({});
+		setArquivoEdit(null);
+		setChaveEdit(function (k) { return k + 1; });
 	}
 
 	async function salvarEdicao() {
@@ -106,6 +117,9 @@ export default function CadastroProdutos() {
 				preco: parseFloat(formEdit.preco),
 				estoque: parseInt(formEdit.estoque),
 			});
+			if (arquivoEdit) {
+				await enviarImagem(editandoId, arquivoEdit);
+			}
 			cancelarEdicao();
 			aviso.mostrarSucesso('Produto salvo');
 			carregar();
@@ -169,6 +183,21 @@ export default function CadastroProdutos() {
 							erro={errosNovo.estoque}
 							obrigatorio
 						/>
+						<div>
+							<label className="block text-sm font-medium mb-1">Imagem:</label>
+							<label className="flex items-center gap-2 cursor-pointer border border-dashed border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-500 hover:bg-gray-50">
+								<span className="flex-1 truncate">
+									{arquivoNovo ? arquivoNovo.name : 'Escolher imagem'}
+								</span>
+								<input
+									key={chaveNovo}
+									type="file"
+									accept="image/*"
+									onChange={function (e) { setArquivoNovo(e.target.files[0] || null); }}
+									className="hidden"
+								/>
+							</label>
+						</div>
 
 						<div className="md:col-span-2 flex justify-center mt-2">
 							<Botao tipo="submit" variante="verde" desabilitado={salvandoNovo}>
@@ -214,6 +243,21 @@ export default function CadastroProdutos() {
 											erro={errosEdit.estoque}
 											obrigatorio
 										/>
+										<div>
+											<label className="block text-sm font-medium mb-1">Imagem:</label>
+											<label className="flex items-center gap-2 cursor-pointer border border-dashed border-gray-300 rounded-xl px-3 py-2 text-sm text-gray-500 hover:bg-gray-50">
+												<span className="flex-1 truncate">
+													{arquivoEdit ? arquivoEdit.name : 'Escolher imagem'}
+												</span>
+												<input
+													key={chaveEdit}
+													type="file"
+													accept="image/*"
+													onChange={function (e) { setArquivoEdit(e.target.files[0] || null); }}
+													className="hidden"
+												/>
+											</label>
+										</div>
 
 										<div className="md:col-span-2 flex justify-end gap-2">
 											<Botao variante="verde" aoClicar={salvarEdicao}>
